@@ -1,0 +1,14 @@
+[package]
+name = "test-mnemonic-hd-generation"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bip39 = "2.0"
+solana-sdk = "1.17"  # Add Solana SDK
+solana-cli-config = "1.17"  # Add Solana CLI config
+bs58 = "0.4"
+pbkdf2 = "0.11"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
