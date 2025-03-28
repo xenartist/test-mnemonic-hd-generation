@@ -7,6 +7,7 @@ use solana_sdk::{
     derivation_path::DerivationPath,
     signature::{keypair_from_seed_and_derivation_path, Signer},
 };
+use hex;
 
 // Function to generate and verify keypair from mnemonic
 fn verify_mnemonic(mnemonic_str: &str, passphrase: &str, expected_pubkey: &str) {
@@ -14,7 +15,7 @@ fn verify_mnemonic(mnemonic_str: &str, passphrase: &str, expected_pubkey: &str) 
     let mnemonic = Mnemonic::from_str(mnemonic_str).unwrap();
     
     // 2. Generate seed with passphrase
-    let salt = format!("mnemonic{}", passphrase); // Add passphrase to salt
+    let salt = format!("mnemonic{}", passphrase);
     let mut seed = [0u8; 64];
     
     pbkdf2::<Hmac<Sha512>>(
@@ -24,13 +25,25 @@ fn verify_mnemonic(mnemonic_str: &str, passphrase: &str, expected_pubkey: &str) 
         &mut seed
     );
     
-    // 3. Derive Solana keypair from seed
+    // Print the seed in hex format
+    println!("Generated Seed (hex): {}", hex::encode(&seed));
+    
+    // Get master private key (directly from seed without derivation)
+    let master_keypair = keypair_from_seed_and_derivation_path(&seed, None).unwrap();
+    println!("Master Private Key (path: m) (hex): {}", 
+        hex::encode(master_keypair.secret().as_bytes()));
+    
+    // 3. Derive child keypair from seed using path
     let path = "m/44'/501'/0'/0'";
     let derivation_path = DerivationPath::from_absolute_path_str(path).unwrap();
-    let keypair = keypair_from_seed_and_derivation_path(&seed, Some(derivation_path)).unwrap();
+    let derived_keypair = keypair_from_seed_and_derivation_path(&seed, Some(derivation_path)).unwrap();
     
-    // 4. Get public key
-    let pubkey = keypair.pubkey();
+    // Print the derived private key
+    println!("Derived Private Key (path: {}) (hex): {}", 
+        path, hex::encode(derived_keypair.secret().as_bytes()));
+    
+    // 4. Get public key from derived keypair
+    let pubkey = derived_keypair.pubkey();
     let pubkey_base58 = pubkey.to_string();
     
     // 5. Verify and print results
